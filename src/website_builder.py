@@ -20,14 +20,6 @@ class WebsiteBuilder:
     def __init__(self):
         self.env = jinja2.Environment(loader=jinja2.FileSystemLoader("./assets/maps/"))
         self.marker_template = "L.marker({{lon: {lon}, lat: {lat}}}).bindPopup('{popup_text}').addTo(map);"
-        # self.geojson_template = r"""L.geoJSON({{data}}, {
-        #                     style: function (feature) {
-        #                         return {color: feature.properties.color};
-        #                     }
-        #                 }).bindPopup(function (layer) {
-        #                     return layer.feature.properties.description;
-        #                 }).addTo(map);
-        #                 """
         self.geojson_template = r"""L.geoJSON({{data}}).addTo(map);"""
         self.website_config = WebsiteConfig()
 
