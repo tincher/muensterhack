@@ -23,32 +23,41 @@ class WebsiteConfig:
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community'
             });
 
-            // Design der Kartenauswahl
+            // Design der Kartenauswahl (gleiche Farben und Schrift wie die Suchkarte)
             var stil = document.createElement('style');
             stil.textContent = `
                 .karten-auswahl {
                     display: flex;
                     gap: 4px;
-                    padding: 4px;
-                    background: rgba(255, 255, 255, 0.92);
+                    padding: 5px;
+                    background: #fff;
                     border-radius: 999px;
-                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-                    backdrop-filter: blur(6px);
-                    font-family: system-ui, -apple-system, sans-serif;
+                    box-shadow: 0 4px 20px rgba(19, 41, 51, 0.18);
+                    font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
                 }
                 .karten-knopf {
+                    min-height: 40px;
+                    padding: 0 16px;
                     border: none;
-                    background: transparent;
-                    padding: 8px 14px;
                     border-radius: 999px;
-                    font-size: 14px;
-                    color: #333;
+                    background: transparent;
+                    font: inherit;
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #132933;
                     cursor: pointer;
-                    transition: background 0.2s, color 0.2s;
+                    transition: background 0.15s, color 0.15s;
                 }
-                .karten-knopf:hover { background: #eef2f7; }
-                .karten-knopf[aria-pressed="true"] { background: #2f6fed; color: #fff; }
-                .karten-knopf:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+                .karten-knopf:hover { background: #e0f2dc; }
+                .karten-knopf[aria-pressed="true"] { background: #2b5d79; color: #fff; }
+                .karten-knopf:focus-visible {
+                    outline: 3px solid #e6af44;
+                    outline-offset: 2px;
+                    box-shadow: 0 0 0 5px #132933;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .karten-knopf { transition: none; }
+                }
             `;
             document.head.appendChild(stil);
 
@@ -108,11 +117,14 @@ class WebsiteBuilder:
         #                     return layer.feature.properties.description;
         #                 }).addTo(map);
         #                 """
-        self.geojson_template = r"""L.geoJSON({{data}}).addTo(map);"""
+        self.geojson_template = r"""var route = L.geoJSON({{data}}, {style: {color: '#2b5d79', weight: 6, opacity: 0.9} }).addTo(map);
+        map.fitBounds(route.getBounds(), {padding: [40, 40]});"""
         self.website_config = WebsiteConfig()
 
-    def render(self):
-        return self.env.get_template("base_map.jinja2").render(leaflet_code=self.website_config.code)
+    def render(self, **template_vars):
+        return self.env.get_template("base_map.jinja2").render(
+            leaflet_code=self.website_config.code, **template_vars
+        )
 
     def add_marker(self, lat: float, lon: float, popup_text: str):
         self.website_config.append(self.marker_template.format(lon=lon, lat=lat, popup_text=popup_text))

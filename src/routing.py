@@ -1,8 +1,9 @@
+import os
+
 import geojson
 import requests
+
 from src.coordinates import Coordinates
-import os
-from geojson import FeatureCollection
 
 
 def get_route(from_: Coordinates, to_: Coordinates):
@@ -19,6 +20,7 @@ def get_route(from_: Coordinates, to_: Coordinates):
         "instructions_format": "html",
         "extra_info": ["surface", "steepness", "waytype"],
         "units": "km",
+        "language": "de",
         "preference": "recommended",
         "options": {
             "profile_params": {
@@ -39,6 +41,17 @@ def get_route(from_: Coordinates, to_: Coordinates):
     response = requests.post(url, headers=headers, json=data)
 
     return geojson.loads(response.text)
+
+
+def summarize_route(route) -> dict:
+    """Extracts distance, duration and the step list for the search card."""
+    properties = route["features"][0]["properties"]
+    summary = properties["summary"]
+    return {
+        "distance_km": round(summary["distance"], 1),
+        "duration_min": round(summary["duration"] / 60),
+        "steps": [step["instruction"] for step in properties["segments"][0]["steps"]],
+    }
 
 
 if __name__ == "__main__":
