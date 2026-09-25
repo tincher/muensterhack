@@ -1,11 +1,10 @@
 import csv
 import sqlite3
-from pydantic import BaseModel
-from src.waypoint import Waypoint, RollstuhlgerechtLevel, Zugangsseite
 
 from pydantic import BaseModel
 
 from src.coordinates import Coordinates
+from src.waypoint import Waypoint
 
 # Layer2 is a verified byte-identical duplicate of layer1 (checked with `diff data/layer1.csv data/layer2.csv`),
 # so it is deliberately skipped here to avoid double-counting spots.

@@ -1,28 +1,17 @@
-"""Parking-spot eligibility filters.
-
-A `Filter` constrains which parking spots are eligible for selection. Its `owner`,
-`time_restricted`, `status`, and `parking_type` fields are matched against a spot's attributes via
-`Filter.matches`, and can be checked before any routing call is made.
-
-`max_wheelchair_distance_m` is different: it must be evaluated against the *direct* wheelchair
-network distance from a spot to the destination (the distance an ORS matrix call reports), not
-against the shade-detoured wheelchair leg that is actually travelled. That direct distance is only
-known once candidates have been ranked, so `max_wheelchair_distance_m` is deliberately not checked
-in `matches` — it is applied as a cutoff after ranking, in the candidate-selection logic in
-`src/routing.py`.
-"""
-
 from pydantic import BaseModel
 
 from src.db_handler import ParkingSpot
+from src.waypoint import RollstuhlgerechtLevel, Zugangsseite
 
 
 class Filter(BaseModel):
-    owner: str | None = None
-    time_restricted: bool | None = None
-    status: str | None = None
-    parking_type: str | None = None
-    max_wheelchair_distance_m: float | None = None
+    pp_ladesaeule_kw: list[float] | None = None
+    pp_zugangsseite: list[Zugangsseite] | None = None
+    pp_rollstuhlgerecht_level: list[RollstuhlgerechtLevel] | None = None
+    pp_ueberdacht: list[bool] | None = None
+    pp_schranke: list[bool] | None = None
+    pp_kostenlos: list[bool] | None = None
+    pp_belegt: list[bool] | None = None
 
     def matches(self, spot: ParkingSpot) -> bool:
         """Check the attribute fields (owner, time_restricted, status, parking_type) against a spot.
@@ -30,18 +19,26 @@ class Filter(BaseModel):
         A `None` field never constrains. `max_wheelchair_distance_m` is not evaluated here — see
         the module docstring.
         """
-        if self.owner is not None and spot.owner != self.owner:
-            return False
-        if self.time_restricted is not None and spot.time_restricted != self.time_restricted:
-            return False
-        if self.status is not None and spot.status != self.status:
-            return False
-        return not (self.parking_type is not None and spot.parking_type != self.parking_type)
 
+        if self.pp_ladesaeule_kw is not None and spot.pp_ladesaeule_kw not in self.pp_ladesaeule_kw:
+            return False
+        if self.pp_zugangsseite is not None and spot.pp_zugangsseite not in self.pp_zugangsseite:
+            return False
+        if self.pp_rollstuhlgerecht_level is not None and spot.pp_rollstuhlgerecht_level not in self.pp_rollstuhlgerecht_level:
+            return False
+        if self.pp_ueberdacht is not None and spot.pp_ueberdacht not in self.pp_ueberdacht:
+            return False
+        if self.pp_schranke is not None and spot.pp_schranke not in self.pp_schranke:
+            return False
+        if self.pp_kostenlos is not None and spot.pp_kostenlos not in self.pp_kostenlos:
+            return False
+        if self.pp_belegt is not None and spot.pp_belegt not in self.pp_belegt:
+            return False
+        return True
 
-def apply_filters(filters: list[Filter], spots: list[ParkingSpot]) -> list[ParkingSpot]:
-    """Return the spots that satisfy every filter in `filters` (AND semantics).
+    def apply(self, spots: list[ParkingSpot]) -> list[ParkingSpot]:
+        """Return the spots that satisfy every filter in `filters` (AND semantics).
 
-    An empty `filters` list leaves every spot eligible.
-    """
-    return [spot for spot in spots if all(f.matches(spot) for f in filters)]
+        An empty `filters` list leaves every spot eligible.
+        """
+        return [spot for spot in spots if self.matches(spot)]

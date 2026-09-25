@@ -3,6 +3,7 @@ from flask import Flask
 
 from src.coordinates import Coordinates
 from src.db_handler import DatabaseHandler
+from src.filter import Filter
 from src.routing import get_complete_route
 from src.website_builder import WebsiteBuilder
 
@@ -13,7 +14,7 @@ app = Flask(__name__)
 @app.route("/example_route")
 def index():
     # 51.962713, 7.625652
-    route = get_complete_route(Coordinates(lon=7.641, lat=51.952), Coordinates(lon=7.625652, lat=51.962713), [])
+    route = get_complete_route(from_=Coordinates(lon=7.625652, lat=51.962713), to_=Coordinates(lon=7.641, lat=51.952), filter=Filter())
     return WebsiteBuilder().get_route_example(route).render()
 
 

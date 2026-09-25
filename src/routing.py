@@ -8,7 +8,7 @@ from pyproj import Geod
 
 from src.coordinates import Coordinates
 from src.db_handler import DatabaseHandler, ParkingSpot
-from src.filter import Filter, apply_filters
+from src.filter import Filter
 
 load_dotenv()
 
@@ -146,7 +146,7 @@ def _wheelchair_matrix_distances(candidates: list[ParkingSpot], destination: Coo
     return [row[0] if row else None for row in response["distances"]]
 
 
-def _select_by_fallback(narrowed: list[ParkingSpot], destination: Coordinates, max_distance_m: float | None) -> ParkingSpot:
+def _select_by_fallback(narrowed: list[ParkingSpot], destination: Coordinates) -> ParkingSpot:
     """Fallback selection: route each of the already-narrowed candidates individually and take the shortest.
 
     Used when the wheelchair matrix call fails or is unavailable. `narrowed` must already be the
@@ -163,8 +163,6 @@ def _select_by_fallback(narrowed: list[ParkingSpot], destination: Coordinates, m
             continue
         distance_km = route["features"][0]["properties"]["summary"]["distance"]
         distance_m = distance_km * 1000
-        if max_distance_m is not None and distance_m > max_distance_m:
-            continue
         if best_distance is None or distance_m < best_distance:
             best_spot, best_distance = spot, distance_m
     if best_spot is None:
@@ -174,7 +172,7 @@ def _select_by_fallback(narrowed: list[ParkingSpot], destination: Coordinates, m
 
 def select_parking_spot(
     destination: Coordinates,
-    filters: list[Filter],
+    filter: Filter,
     radius_m: float = DEFAULT_PARKING_RADIUS_M,
 ) -> ParkingSpot:
     """Select the eligible parking spot near `destination` whose wheelchair route there is shortest.
@@ -194,25 +192,21 @@ def select_parking_spot(
     if not candidates:
         raise RuntimeError(f"No parking spot is available within {radius_m} m of destination {destination}")
 
-    eligible = apply_filters(filters, candidates)
+    eligible = filter.apply(candidates)
     if not eligible:
         raise RuntimeError(f"No parking spot satisfies the supplied filters within {radius_m} m of destination {destination}")
 
     narrowed = _narrow_to_nearest(eligible, destination)
 
-    max_distance_m = next((f.max_wheelchair_distance_m for f in filters if f.max_wheelchair_distance_m is not None), None)
-
     try:
         distances = _wheelchair_matrix_distances(narrowed, destination)
     except RuntimeError:
-        return _select_by_fallback(narrowed, destination, max_distance_m)
+        return _select_by_fallback(narrowed, destination)
 
     best_spot = None
     best_distance = None
     for spot, distance_m in zip(narrowed, distances):
         if distance_m is None:
-            continue
-        if max_distance_m is not None and distance_m > max_distance_m:
             continue
         if best_distance is None or distance_m < best_distance:
             best_spot, best_distance = spot, distance_m
@@ -268,7 +262,7 @@ def _merge_complete_route(car_route: dict, wheelchair_route: dict, spot: Parking
 def get_complete_route(
     from_: Coordinates,
     to_: Coordinates,
-    filters: list[Filter],
+    filter: Filter,
     radius_m: float = DEFAULT_PARKING_RADIUS_M,
 ) -> FeatureCollection:
     """Compute a complete car-then-wheelchair journey from `from_` to `to_`.
@@ -278,7 +272,7 @@ def get_complete_route(
     `RuntimeError` if no usable spot exists or if the car leg cannot be produced; never returns a
     single-mode result in place of a failed complete route.
     """
-    spot = select_parking_spot(to_, filters, radius_m=radius_m)
+    spot = select_parking_spot(to_, filter, radius_m=radius_m)
 
     try:
         car_route = get_driving_car_route(from_, spot.coordinates)

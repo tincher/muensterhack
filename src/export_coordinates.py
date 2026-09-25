@@ -2,7 +2,7 @@ import csv
 
 from src.coordinates import read_municipal_csv
 
-SOURCE_FILES = ["data/layer1.csv", "data/layer2.csv", "data/layer3.csv"]
+SOURCE_FILES = ["data/layer1.csv", "data/layer3.csv"]
 
 
 def export_to_wgs84(source_path: str) -> str:
