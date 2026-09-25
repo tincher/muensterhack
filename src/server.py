@@ -5,7 +5,6 @@ from src.coordinates import Coordinates
 from src.db_handler import DatabaseHandler
 from src.filter import Filter
 from src.routing import get_complete_route, get_route
-from src.test_data import get_test_waypoints
 from src.website_builder import WebsiteBuilder
 
 load_dotenv()
