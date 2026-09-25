@@ -1,19 +1,27 @@
 import asyncio
 import json
+import os
 
+from pydantic import BaseModel
 from websockets.asyncio.client import connect
 
 from src.coordinates import Coordinates
 
+SENSOR_ID = 677
 
-class ParkSensor:
+
+class ParkSensor(BaseModel):
+    id: str
+    geo_location: Coordinates
+    occupied: bool
+
+
+class ParkSensorConnector:
     def __init__(self, consumer_id: int, consumer_pass: str):
         self.consumer_id = consumer_id
         self.consumer_pass = consumer_pass
-        self.geo_location: Coordinates | None = None
-        self.occupied: bool | None = None
 
-    async def get_current_detection(self):
+    async def get_data(self):
         async with connect(f"wss://datahub.digital/api/x/websocket/consumers/{self.consumer_id}?auth={self.consumer_pass}") as websocket:
             message = await websocket.recv()
             data = json.loads(message)
@@ -24,4 +32,4 @@ class ParkSensor:
 
 
 if __name__ == "__main__":
-    asyncio.run(ParkSensor(677, "ED8248EB-E8F6-4760-8B26-B8BFF9109C65").get_current_detection())
+    asyncio.run(ParkSensor(SENSOR_ID, os.environ["NIOTIX_AUTH"]).get_current_detection())

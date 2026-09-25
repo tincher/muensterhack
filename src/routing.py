@@ -30,12 +30,8 @@ WHEELCHAIR_PROFILE_PARAMS = {
 }
 
 
-def _shaded_url():
-    return os.environ.get("SHADED_ROUTING_URL", DEFAULT_SHADED_URL)
-
-
 def _shaded_api_key():
-    return os.environ.get("SHADED_ROUTING_API_KEY") or os.environ["ROUTING_API_KEY"]
+    return os.environ["ROUTING_API_KEY"]
 
 
 def _headers(api_key: str) -> dict[str, str]:
@@ -95,7 +91,7 @@ def get_shade_wheelchair_route(
         },
     }
 
-    shade_route = _post_ors(_shaded_url(), shade_payload, api_key=_shaded_api_key())
+    shade_route = _post_ors(DEFAULT_SHADED_URL, shade_payload, api_key=_shaded_api_key())
     waypoints = _sample_waypoints(shade_route["features"][0]["geometry"]["coordinates"], num_waypoints)
 
     try:
