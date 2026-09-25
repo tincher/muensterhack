@@ -5,7 +5,7 @@ import os
 from geojson import FeatureCollection
 
 
-def get_route(from_: Coordinates, to_: Coordinates):
+def get_route(points: list[Coordinates]):
     url = "https://api.openrouteservice.org/v2/directions/wheelchair/geojson"
 
     headers = {
@@ -14,7 +14,7 @@ def get_route(from_: Coordinates, to_: Coordinates):
     }
 
     data = {
-        "coordinates": [[from_.lon, from_.lat], [to_.lon, to_.lat]],
+        "coordinates": [[point.lon, point.lat] for point in points],
         "elevation": True,
         "instructions_format": "html",
         "extra_info": ["surface", "steepness", "waytype"],
@@ -42,4 +42,4 @@ def get_route(from_: Coordinates, to_: Coordinates):
 
 
 if __name__ == "__main__":
-    print(get_route(Coordinates(lon=7.641, lat=51.952), Coordinates(lon=7.626, lat=51.962)))
+    print(get_route([Coordinates(lon=7.641, lat=51.952), Coordinates(lon=7.626, lat=51.962)]))

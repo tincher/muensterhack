@@ -1,0 +1,116 @@
+<div id="waypoint-list-view" class="waypoint-list-view" hidden>
+  <ul id="waypoint-list" class="waypoint-list"></ul>
+  <p id="waypoint-list-empty" class="waypoint-list__empty" hidden>Keine Parkplätze für die gewählten Filter gefunden.</p>
+</div>
+
+<style>
+  .waypoint-list-view {
+    position: fixed;
+    top: calc(var(--app-header-height) + 10px + var(--filter-bar-height, 40px) + 8px);
+    left: 0;
+    right: 0;
+    bottom: var(--view-switcher-height);
+    overflow-y: auto;
+    background: #fafafa;
+    z-index: 500;
+  }
+
+  .waypoint-list-view[hidden] {
+    display: none;
+  }
+
+  .waypoint-list {
+    list-style: none;
+    margin: 0;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .waypoint-list__item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    font-family: system-ui, sans-serif;
+  }
+
+  .waypoint-list__image {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .waypoint-list__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .waypoint-list__title {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+  }
+
+  .waypoint-list__empty {
+    text-align: center;
+    color: #888;
+    font-family: system-ui, sans-serif;
+    font-size: 0.85rem;
+    padding: 24px 16px;
+  }
+</style>
+
+<script>
+  function renderWaypointList() {
+    const list = document.getElementById('waypoint-list');
+    const empty = document.getElementById('waypoint-list-empty');
+    list.innerHTML = '';
+
+    const visibleWaypoints = waypointMarkers.filter(function (entry) {
+      return Array.from(activeFilters).every(function (filter) {
+        return FILTER_PREDICATES[filter](entry.waypoint);
+      });
+    });
+
+    empty.hidden = visibleWaypoints.length > 0;
+
+    visibleWaypoints.forEach(function (entry) {
+      const waypoint = entry.waypoint;
+      const item = document.createElement('li');
+      item.className = 'waypoint-list__item';
+      item.addEventListener('click', function () {
+        showWaypointPanel(waypoint);
+      });
+
+      if (waypoint.pp_bildpfad) {
+        const image = document.createElement('img');
+        image.className = 'waypoint-list__image';
+        image.src = waypoint.pp_bildpfad;
+        image.alt = '';
+        item.appendChild(image);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'waypoint-list__body';
+
+      const title = document.createElement('h3');
+      title.className = 'waypoint-list__title';
+      title.textContent = waypoint.pp_id;
+      body.appendChild(title);
+
+      const chips = document.createElement('ul');
+      chips.className = 'waypoint-panel__attributes';
+      renderAttributeChips(chips, waypoint);
+      body.appendChild(chips);
+
+      item.appendChild(body);
+      list.appendChild(item);
+    });
+  }
+</script>

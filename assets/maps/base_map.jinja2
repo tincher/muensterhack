@@ -19,6 +19,11 @@
   </head>
   <body>
     <div id="map"></div>
+    {% include "header_bar.jinja2" %}
+    {% include "waypoint_panel.jinja2" %}
+    {% include "filter_bar.jinja2" %}
+    {% include "list_view.jinja2" %}
+    {% include "view_switcher.jinja2" %}
     <script>
      {{leaflet_code}}
     </script>
