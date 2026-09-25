@@ -1,5 +1,7 @@
 import csv
 import sqlite3
+from pydantic import BaseModel
+from src.waypoint import Waypoint, RollstuhlgerechtLevel, Zugangsseite
 
 from pydantic import BaseModel
 
@@ -56,10 +58,22 @@ def _read_positions(path: str) -> list[tuple[str, Coordinates]]:
 
 class DatabaseHandler:
     def __init__(self):
-        self.con = sqlite3.connect("parking.db")
+        self.con = sqlite3.connect("db")
 
-    def get_current_occupation(self):
-        pass
+    def get_all(self):
+        res = self.con.execute("SELECT * FROM parkplaetze")
+        res_all = res.fetchall()
+        return [Waypoint(pp_id=str(current_res[0]),
+                         pp_lat=current_res[1],
+                         pp_lon=current_res[2],
+                         pp_ladesaeule_kw=current_res[3],
+                         pp_zugangsseite=current_res[4],
+                         pp_rollstuhlgerecht_level=current_res[5],
+                         pp_ueberdacht=current_res[6],
+                         pp_schranke=current_res[7],
+                         pp_bildpfad=current_res[8],
+                         pp_kostenlos=current_res[9],
+                         pp_belegt=current_res[10]) for current_res in res_all]
 
     def write_occupation(self, id, occupation):
         pass
@@ -90,6 +104,15 @@ class DatabaseHandler:
                 )
         return spots
 
+    def write_one(self, waypoint):
+        self.con.execute(f"INSERT INTO parkplaetze VALUES({waypoint.get_sql_values()})")
+        self.con.commit()
 
 if __name__ == "__main__":
-    DatabaseHandler().get_current_occupation()
+    # DatabaseHandler().write_one(Waypoint(pp_id="8", 
+    #     pp_lon=55,
+    #     pp_lat=7,
+    #     pp_bildpfad="developer/muensterhack_bilder",
+    #     pp_ladesaeule_kw=22
+    # ))
+    print(DatabaseHandler().get_all())
