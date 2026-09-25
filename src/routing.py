@@ -77,8 +77,8 @@ def _sample_waypoints(coordinates, num_waypoints: int = 20):
     return waypoints
 
 
-def get_route(from_: Coordinates, to_: Coordinates) -> dict:
-    coordinates = [[from_.lon, from_.lat], [to_.lon, to_.lat]]
+def get_route(route_coordinates: list[Coordinates]) -> dict:
+    coordinates = [[point.lon, point.lat] for point in route_coordinates]
     payload = _wheelchair_payload(coordinates, instructions_format="html", extra_info=["surface", "steepness", "waytype"])
     return _post_ors(WHEELCHAIR_URL, payload)
 

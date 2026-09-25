@@ -82,32 +82,6 @@ class DatabaseHandler:
     def write_occupation(self, id, occupation):
         pass
 
-    def get_all_parking_spots(self) -> list[ParkingSpot]:
-        """Return all known disabled-parking spots, de-duplicated by `LFDNR`.
-
-        Positions come from the already-exported `data/layer*_wgs84.csv` files; attributes come
-        from the corresponding original municipal CSVs, joined by `LFDNR`. `data/layer2.csv` is a
-        verified duplicate of `data/layer1.csv` and is not read. If a `LFDNR` were ever recorded in
-        more than one source, only its first occurrence is kept.
-        """
-        spots: list[ParkingSpot] = []
-        seen_ids: set[str] = set()
-        for source in PARKING_SOURCES:
-            attributes_by_id = _read_attributes(source["attributes"])
-            for lfdnr, coordinates in _read_positions(source["positions"]):
-                if lfdnr in seen_ids:
-                    continue
-                seen_ids.add(lfdnr)
-                attributes = attributes_by_id.get(lfdnr, {})
-                spots.append(
-                    ParkingSpot(
-                        id=lfdnr,
-                        coordinates=coordinates,
-                        status=attributes.get("status"),
-                    )
-                )
-        return spots
-
     def write_one(self, waypoint):
         self.con.execute(f"INSERT INTO parkplaetze VALUES({waypoint.get_sql_values()})")
         self.con.commit()

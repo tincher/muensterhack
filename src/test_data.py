@@ -1,6 +1,6 @@
 """Temporary sample data for manually testing the waypoint panel. Delete once real data exists."""
 
-from src.waypoint import Barrierefreiheitslevel, Waypoint, Zugangsseite
+from src.waypoint import RollstuhlgerechtLevel, Waypoint, Zugangsseite
 
 
 def get_test_waypoints() -> list[Waypoint]:
@@ -12,7 +12,7 @@ def get_test_waypoints() -> list[Waypoint]:
             pp_bildpfad="https://picsum.photos/seed/domplatz/480/240",
             pp_ladesaeule_kw=22,
             pp_zugangsseite=Zugangsseite.RECHTS,
-            pp_barrierefreiheit_level=Barrierefreiheitslevel.VOLL,
+            pp_barrierefreiheit_level=RollstuhlgerechtLevel.VOLL,
             pp_ueberdacht=True,
             pp_schranke=False,
             pp_kostenlos=False,
@@ -26,7 +26,7 @@ def get_test_waypoints() -> list[Waypoint]:
             pp_bildpfad=None,
             pp_ladesaeule_kw=None,
             pp_zugangsseite=Zugangsseite.UNBEKANNT,
-            pp_barrierefreiheit_level=Barrierefreiheitslevel.UNBEKANNT,
+            pp_barrierefreiheit_level=RollstuhlgerechtLevel.UNBEKANNT,
             pp_ueberdacht=False,
             pp_schranke=False,
             pp_kostenlos=True,
@@ -40,7 +40,7 @@ def get_test_waypoints() -> list[Waypoint]:
             pp_bildpfad="https://picsum.photos/seed/hbf/480/240",
             pp_ladesaeule_kw=None,
             pp_zugangsseite=Zugangsseite.LINKS,
-            pp_barrierefreiheit_level=Barrierefreiheitslevel.NICHT,
+            pp_barrierefreiheit_level=RollstuhlgerechtLevel.NICHT,
             pp_ueberdacht=True,
             pp_schranke=True,
             pp_kostenlos=False,
@@ -54,7 +54,7 @@ def get_test_waypoints() -> list[Waypoint]:
             pp_bildpfad="https://picsum.photos/seed/schlossgarten/480/240",
             pp_ladesaeule_kw=150,
             pp_zugangsseite=Zugangsseite.BEIDSEITIG,
-            pp_barrierefreiheit_level=Barrierefreiheitslevel.TEILWEISE,
+            pp_barrierefreiheit_level=RollstuhlgerechtLevel.TEILWEISE,
             pp_ueberdacht=False,
             pp_schranke=False,
             pp_kostenlos=False,

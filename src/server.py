@@ -50,6 +50,7 @@ def plan_route():
 @app.route("/example_waypoints")
 def example_waypoints():
     builder = WebsiteBuilder()
-    for waypoint in get_test_waypoints():
-        builder.add_waypoint(waypoint)
+    parking_spots = DatabaseHandler().get_all()
+    for parking_spot in parking_spots:
+        builder.add_waypoint(parking_spot)
     return builder.render()
