@@ -4,6 +4,7 @@ from flask import Flask
 from src.coordinates import Coordinates
 from src.routing import get_route
 from src.website_builder import WebsiteBuilder
+import sqlite3
 
 load_dotenv()
 app = Flask(__name__)
