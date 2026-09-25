@@ -6,10 +6,90 @@ from src.waypoint import Waypoint
 class WebsiteConfig:
     code: str = """var map = L.map('map').setView({lon: 7.641, lat: 51.952}, 13);
             // add the OpenStreetMap tiles
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
             }).addTo(map);
+
+            // Alternative 1: Stadia Outdoors
+            var stadiaOutdoors = L.tileLayer('https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.{ext}', {
+                minZoom: 0,
+                maxZoom: 20,
+                attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                ext: 'png'
+            });
+
+            // Alternative 2: Satellitenbild (Esri)
+            var satellit = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community'
+            });
+
+            // Design der Kartenauswahl
+            var stil = document.createElement('style');
+            stil.textContent = `
+                .karten-auswahl {
+                    display: flex;
+                    gap: 4px;
+                    padding: 4px;
+                    background: rgba(255, 255, 255, 0.92);
+                    border-radius: 999px;
+                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+                    backdrop-filter: blur(6px);
+                    font-family: system-ui, -apple-system, sans-serif;
+                }
+                .karten-knopf {
+                    border: none;
+                    background: transparent;
+                    padding: 8px 14px;
+                    border-radius: 999px;
+                    font-size: 14px;
+                    color: #333;
+                    cursor: pointer;
+                    transition: background 0.2s, color 0.2s;
+                }
+                .karten-knopf:hover { background: #eef2f7; }
+                .karten-knopf[aria-pressed="true"] { background: #2f6fed; color: #fff; }
+                .karten-knopf:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+            `;
+            document.head.appendChild(stil);
+
+            // Kartenauswahl als Knopfleiste (oben rechts)
+            var karten = [
+                {name: 'Stadtplan', layer: osm},
+                {name: 'Natur', layer: stadiaOutdoors},
+                {name: 'Satellit', layer: satellit}
+            ];
+            var aktiveKarte = osm;
+
+            var KartenAuswahl = L.Control.extend({
+                options: {position: 'topright'},
+                onAdd: function () {
+                    var box = L.DomUtil.create('div', 'karten-auswahl');
+                    box.setAttribute('role', 'group');
+                    box.setAttribute('aria-label', 'Kartenstil wählen');
+                    L.DomEvent.disableClickPropagation(box);
+
+                    karten.forEach(function (k) {
+                        var knopf = L.DomUtil.create('button', 'karten-knopf', box);
+                        knopf.type = 'button';
+                        knopf.textContent = k.name;
+                        knopf.setAttribute('aria-pressed', k.layer === aktiveKarte ? 'true' : 'false');
+
+                        knopf.addEventListener('click', function () {
+                            map.removeLayer(aktiveKarte);
+                            k.layer.addTo(map);
+                            aktiveKarte = k.layer;
+                            box.querySelectorAll('.karten-knopf').forEach(function (b) {
+                                b.setAttribute('aria-pressed', 'false');
+                            });
+                            knopf.setAttribute('aria-pressed', 'true');
+                        });
+                    });
+                    return box;
+                }
+            });
+            new KartenAuswahl().addTo(map);
 
             // show the scale bar on the lower left corner
             L.control.scale({imperial: true, metric: true}).addTo(map);"""
