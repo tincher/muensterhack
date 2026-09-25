@@ -1,0 +1,21 @@
+curl 'https://api.openrouteservice.org/v2/pdirections/wheelchair/geojson' \
+  -X POST \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: en-US,en;q=0.9,de;q=0.8' \
+  -H 'Accept-Encoding: gzip, deflate, br, zstd' \
+  -H 'Referer: https://maps.openrouteservice.org/' \
+  -H 'Authorization: eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijg4OGNmZWFhZGYwNTQ4MzA5MGE0MDc3Y2Q4MWFmMjBlIiwiaCI6Im11cm11cjY0In0=' \
+  -H 'Content-type: application/json' \
+  -H 'Origin: https://maps.openrouteservice.org' \
+  -H 'DNT: 1' \
+  -H 'Connection: keep-alive' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-site' \
+  -H 'Sec-GPC: 1' \
+  -H 'Priority: u=4' \
+  -H 'Pragma: no-cache' \
+  -H 'Cache-Control: no-cache' \
+  -H 'TE: trailers' \
+  --data-raw '{"coordinates":[[7.634382247924806,51.95637927006984],[7.63901710510254,51.951036645095904]],"elevation":true,"instructions_format":"html","extra_info":["surface","steepness","waytype"],"language":"en","units":"km","preference":"recommended","options":{"profile_params":{"restrictions":{"maximum_incline":"6","maximum_sloped_kerb":"0.06","minimum_width":1,"smoothness_type":"good","surface_type":"cobblestone","track_type":"grade1"},"surface_quality_known":false,"allow_unsuitable":false}}}'

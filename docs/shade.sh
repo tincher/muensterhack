@@ -1,0 +1,16 @@
+curl 'https://api.shaded.openrouteservice.org/ors/v2/directions/foot-walking/geojson' \
+  -X POST \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:156.0) Gecko/20100101 Firefox/156.0' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: en-US,en;q=0.9,de;q=0.8' \
+  -H 'Accept-Encoding: gzip, deflate, br, zstd' \
+  -H 'Referer: https://shaded.openrouteservice.org/' \
+  -H 'Authorization: eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6Ijg4OGNmZWFhZGYwNTQ4MzA5MGE0MDc3Y2Q4MWFmMjBlIiwiaCI6Im11cm11cjY0In0=' \
+  -H 'Content-type: application/json' \
+  -H 'Origin: https://shaded.openrouteservice.org' \
+  -H 'DNT: 1' \
+  -H 'Connection: keep-alive' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-site' \
+  --data-raw '{"coordinates":[[7.638082,51.950745],[7.634425163269044,51.95606190419299]],"elevation":true,"instructions_format":"html","extra_info":["csv"],"language":"en","units":"km","preference":"recommended","options":{"profile_params":{"weightings":{"csv_factor":0,"csv_column":"233_18"}},"avoid_features":["ferries"]}}'
