@@ -63,17 +63,22 @@ class DatabaseHandler:
     def get_all(self):
         res = self.con.execute("SELECT * FROM parkplaetze")
         res_all = res.fetchall()
-        return [Waypoint(pp_id=str(current_res[0]),
-                         pp_lat=current_res[1],
-                         pp_lon=current_res[2],
-                         pp_ladesaeule_kw=current_res[3],
-                         pp_zugangsseite=current_res[4],
-                         pp_rollstuhlgerecht_level=current_res[5],
-                         pp_ueberdacht=current_res[6],
-                         pp_schranke=current_res[7],
-                         pp_bildpfad=current_res[8],
-                         pp_kostenlos=current_res[9],
-                         pp_belegt=current_res[10]) for current_res in res_all]
+        return [
+            Waypoint(
+                pp_id=str(current_res[0]),
+                pp_lat=current_res[1],
+                pp_lon=current_res[2],
+                pp_ladesaeule_kw=current_res[3],
+                pp_zugangsseite=current_res[4],
+                pp_rollstuhlgerecht_level=current_res[5],
+                pp_ueberdacht=current_res[6],
+                pp_schranke=current_res[7],
+                pp_bildpfad=current_res[8],
+                pp_kostenlos=current_res[9],
+                pp_belegt=current_res[10],
+            )
+            for current_res in res_all
+        ]
 
     def write_occupation(self, id, occupation):
         pass
@@ -108,8 +113,9 @@ class DatabaseHandler:
         self.con.execute(f"INSERT INTO parkplaetze VALUES({waypoint.get_sql_values()})")
         self.con.commit()
 
+
 if __name__ == "__main__":
-    # DatabaseHandler().write_one(Waypoint(pp_id="8", 
+    # DatabaseHandler().write_one(Waypoint(pp_id="8",
     #     pp_lon=55,
     #     pp_lat=7,
     #     pp_bildpfad="developer/muensterhack_bilder",

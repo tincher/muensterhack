@@ -37,5 +37,12 @@
             "module": "src.db_handler",
             "envFile": "${workspaceFolder}/.env"
         },
+        {
+            "name": "fill db",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.fill_db",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }
