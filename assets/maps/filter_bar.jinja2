@@ -1,0 +1,277 @@
+<div id="waypoint-filter-bar" class="waypoint-filter-bar">
+  <div class="waypoint-filter-group" id="waypoint-filter-rollstuhl">
+    <button type="button" class="waypoint-filter waypoint-filter--main" data-filter="rollstuhlgerecht" data-icon="wheelchair" data-tone="positive" aria-pressed="false">
+      <span class="waypoint-filter__icon"></span><span>Rollstuhlgerecht</span>
+    </button>
+    <button type="button" class="waypoint-filter-caret" aria-expanded="false" aria-controls="waypoint-filter-rollstuhl-options" aria-label="Optionen für Rollstuhlgerecht anzeigen">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8l4 4 4-4"/></svg>
+    </button>
+    <div class="waypoint-filter-options" id="waypoint-filter-rollstuhl-options" hidden>
+      <label class="waypoint-filter-option">
+        <input type="checkbox" id="waypoint-filter-include-partial">
+        <span>Auch teilweise rollstuhlgerecht</span>
+      </label>
+    </div>
+  </div>
+  <button type="button" class="waypoint-filter" data-filter="ueberdacht" data-icon="covered" data-tone="info" aria-pressed="false">
+    <span class="waypoint-filter__icon"></span><span>Überdacht</span>
+  </button>
+  <button type="button" class="waypoint-filter" data-filter="kostenlos" data-icon="priceFree" data-tone="positive" aria-pressed="false">
+    <span class="waypoint-filter__icon"></span><span>Kostenlos</span>
+  </button>
+  <button type="button" class="waypoint-filter" data-filter="ladesaeule" data-icon="charging" data-tone="info" aria-pressed="false">
+    <span class="waypoint-filter__icon"></span><span>Ladesäule</span>
+  </button>
+  <button type="button" class="waypoint-filter" data-filter="frei" data-icon="vacant" data-tone="positive" aria-pressed="false">
+    <span class="waypoint-filter__icon"></span><span>Frei</span>
+  </button>
+</div>
+
+<style>
+  .waypoint-filter-bar {
+    position: fixed;
+    top: calc(var(--app-header-height) + 10px);
+    left: 12px;
+    right: 12px;
+    z-index: 999;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 2px;
+  }
+
+  .waypoint-filter-bar[hidden] {
+    display: none;
+  }
+
+  .waypoint-filter {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    color: #777;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .waypoint-filter__icon {
+    display: inline-flex;
+    width: 13px;
+    height: 13px;
+    color: #999;
+  }
+
+  .waypoint-filter__icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .waypoint-filter[aria-pressed="true"] {
+    border-width: 2px;
+    padding: 4px 9px;
+    font-weight: 600;
+  }
+
+  .waypoint-filter[aria-pressed="true"][data-tone="positive"] {
+    background: #dcf3e3;
+    border-color: #4c8c66;
+    color: #1e6b3c;
+  }
+
+  .waypoint-filter[aria-pressed="true"][data-tone="info"] {
+    background: #dee9fb;
+    border-color: #4d74ad;
+    color: #29558c;
+  }
+
+  .waypoint-filter[aria-pressed="true"] .waypoint-filter__icon {
+    color: inherit;
+  }
+
+  .waypoint-filter-group {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  .waypoint-filter--main {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+  }
+
+  .waypoint-filter-caret {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-left: none;
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    color: #999;
+    cursor: pointer;
+  }
+
+  .waypoint-filter-caret svg {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.15s ease;
+  }
+
+  .waypoint-filter-caret[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  .waypoint-filter-caret--active {
+    background: #dcf3e3;
+    border-color: #4c8c66;
+    color: #1e6b3c;
+  }
+
+  .waypoint-filter-options {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+    padding: 8px 10px;
+    z-index: 1001;
+    white-space: nowrap;
+  }
+
+  .waypoint-filter-options[hidden] {
+    display: none;
+  }
+
+  .waypoint-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-family: system-ui, sans-serif;
+    color: #444;
+    cursor: pointer;
+  }
+
+  @media (min-width: 700px) {
+    .waypoint-filter-bar {
+      right: auto;
+      max-width: calc(100vw - 32px);
+    }
+  }
+</style>
+
+<script>
+  const FILTER_PREDICATES = {
+    rollstuhlgerecht: function (waypoint) {
+      return waypoint.pp_barrierefreiheit_level === 'voll';
+    },
+    ueberdacht: function (waypoint) {
+      return waypoint.pp_ueberdacht === true;
+    },
+    kostenlos: function (waypoint) {
+      return waypoint.pp_kostenlos === true;
+    },
+    ladesaeule: function (waypoint) {
+      return !!waypoint.pp_ladesaeule_kw;
+    },
+    frei: function (waypoint) {
+      return waypoint.pp_belegt === false;
+    },
+  };
+
+  const activeFilters = new Set();
+
+  function initFilterBar() {
+    document.querySelectorAll('.waypoint-filter').forEach(function (button) {
+      button.querySelector('.waypoint-filter__icon').innerHTML = CHIP_ICONS[button.dataset.icon];
+
+      button.addEventListener('click', function () {
+        const filter = button.dataset.filter;
+        if (activeFilters.has(filter)) {
+          activeFilters.delete(filter);
+          button.setAttribute('aria-pressed', 'false');
+        } else {
+          activeFilters.add(filter);
+          button.setAttribute('aria-pressed', 'true');
+        }
+        applyWaypointFilters();
+      });
+    });
+
+    const caret = document.querySelector('.waypoint-filter-caret');
+    const options = document.getElementById('waypoint-filter-rollstuhl-options');
+
+    caret.addEventListener('click', function () {
+      const expanded = caret.getAttribute('aria-expanded') === 'true';
+      caret.setAttribute('aria-expanded', String(!expanded));
+      options.hidden = expanded;
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('#waypoint-filter-rollstuhl')) {
+        caret.setAttribute('aria-expanded', 'false');
+        options.hidden = true;
+      }
+    });
+
+    document.getElementById('waypoint-filter-include-partial').addEventListener('change', function (event) {
+      const includePartial = event.target.checked;
+      FILTER_PREDICATES.rollstuhlgerecht = function (waypoint) {
+        if (includePartial) {
+          return (
+            waypoint.pp_barrierefreiheit_level === 'voll' || waypoint.pp_barrierefreiheit_level === 'teilweise'
+          );
+        }
+        return waypoint.pp_barrierefreiheit_level === 'voll';
+      };
+      caret.classList.toggle('waypoint-filter-caret--active', includePartial);
+      caret.setAttribute('aria-expanded', 'false');
+      options.hidden = true;
+      if (activeFilters.has('rollstuhlgerecht')) {
+        applyWaypointFilters();
+      }
+    });
+  }
+
+  function applyWaypointFilters() {
+    waypointMarkers.forEach(function (entry) {
+      const matches = Array.from(activeFilters).every(function (filter) {
+        return FILTER_PREDICATES[filter](entry.waypoint);
+      });
+      const visible = map.hasLayer(entry.marker);
+      if (matches && !visible) {
+        entry.marker.addTo(map);
+      } else if (!matches && visible) {
+        map.removeLayer(entry.marker);
+      }
+    });
+    renderWaypointList();
+  }
+
+  function syncFilterBarHeight() {
+    const bar = document.getElementById('waypoint-filter-bar');
+    document.documentElement.style.setProperty('--filter-bar-height', bar.offsetHeight + 'px');
+  }
+
+  initFilterBar();
+  syncFilterBarHeight();
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(syncFilterBarHeight).observe(document.getElementById('waypoint-filter-bar'));
+  } else {
+    window.addEventListener('resize', syncFilterBarHeight);
+  }
+</script>

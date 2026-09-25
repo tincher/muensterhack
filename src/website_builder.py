@@ -1,5 +1,7 @@
 import jinja2
 
+from src.waypoint import Waypoint
+
 
 class WebsiteConfig:
     code: str = """var map = L.map('map').setView({lon: 7.641, lat: 51.952}, 13);
@@ -20,6 +22,15 @@ class WebsiteBuilder:
     def __init__(self):
         self.env = jinja2.Environment(loader=jinja2.FileSystemLoader("./assets/maps/"))
         self.marker_template = "L.marker({{lon: {lon}, lat: {lat}}}).bindPopup('{popup_text}').addTo(map);"
+        self.waypoint_marker_template = "registerWaypointMarker({lon}, {lat}, {data});"
+        # self.geojson_template = r"""L.geoJSON({{data}}, {
+        #                     style: function (feature) {
+        #                         return {color: feature.properties.color};
+        #                     }
+        #                 }).bindPopup(function (layer) {
+        #                     return layer.feature.properties.description;
+        #                 }).addTo(map);
+        #                 """
         self.geojson_template = r"""L.geoJSON({{data}}).addTo(map);"""
         self.website_config = WebsiteConfig()
 
@@ -28,6 +39,12 @@ class WebsiteBuilder:
 
     def add_marker(self, lat: float, lon: float, popup_text: str):
         self.website_config.append(self.marker_template.format(lon=lon, lat=lat, popup_text=popup_text))
+        return self
+
+    def add_waypoint(self, waypoint: Waypoint):
+        self.website_config.append(
+            self.waypoint_marker_template.format(lon=waypoint.pp_lon, lat=waypoint.pp_lat, data=waypoint.model_dump_json())
+        )
         return self
 
     def add_route(self, data):
