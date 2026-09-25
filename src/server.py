@@ -1,18 +1,10 @@
 from flask import Flask
-import jinja2
-
+from src.template_handler import TemplateHandler
 
 app = Flask(__name__)
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("./assets/maps/"))
-
-
-marker_template = (
-    "L.marker({{lon: {lon}, lat: {lat}}}).bindPopup('{popup_text}').addTo(map);"
-)
+template_handler = TemplateHandler()
 
 
 @app.route("/")
 def index():
-    return env.get_template("base_map.jinja2").render(
-        markers_js=marker_template.format(lon=7.641, lat=51.952, popup_text="items")
-    )
+    return template_handler.get_example()
