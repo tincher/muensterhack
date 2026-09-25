@@ -16,10 +16,7 @@ PARKING_SOURCES = [
 class ParkingSpot(BaseModel):
     id: str
     coordinates: Coordinates
-    owner: str | None
-    time_restricted: bool | None
     status: str | None
-    parking_type: str | None
 
 
 def _parse_time_restricted(value: str) -> bool | None:
@@ -42,10 +39,7 @@ def _read_attributes(path: str) -> dict[str, dict]:
         for row in reader:
             lfdnr = row["LFDNR"]
             attributes_by_id[lfdnr] = {
-                "owner": row.get("EIGENTUM") or None,
-                "time_restricted": _parse_time_restricted(row.get("Z_BEGR1", "")),
-                "status": row.get("STATUS") or None,
-                "parking_type": row.get("BEH_ART") or None,
+                "status": row.get("STATUS") or "OCCUPIED",
             }
     return attributes_by_id
 
@@ -91,10 +85,7 @@ class DatabaseHandler:
                     ParkingSpot(
                         id=lfdnr,
                         coordinates=coordinates,
-                        owner=attributes.get("owner"),
-                        time_restricted=attributes.get("time_restricted"),
                         status=attributes.get("status"),
-                        parking_type=attributes.get("parking_type"),
                     )
                 )
         return spots

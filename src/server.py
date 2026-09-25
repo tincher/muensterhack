@@ -29,7 +29,7 @@ def map():
     db_handler = DatabaseHandler()
     parking_spots = db_handler.get_all_parking_spots()
     for parking_spot in parking_spots:
-        website_builder.add_marker()
+        website_builder.add_marker(lat=parking_spot.coordinates.lat, lon=parking_spot.coordinates.lon, popup_text=parking_spot.status)
     return website_builder.render()
 
 
