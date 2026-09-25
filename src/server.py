@@ -13,7 +13,6 @@ marker_template = (
 
 @app.route("/")
 def index():
-    print(marker_template.format(lon=7.641, lat=51.952, popup_text="items"))
     return env.get_template("base_map.jinja2").render(
         markers_js=marker_template.format(lon=7.641, lat=51.952, popup_text="items")
     )
