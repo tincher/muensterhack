@@ -12,7 +12,7 @@ app = Flask(__name__, static_folder="../assets", static_url_path="/assets")
 
 
 @app.route("/example_route")
-def index():
+def example_route():
     # 51.962713, 7.625652
     route = get_complete_route(from_=Coordinates(lon=7.625652, lat=51.962713), to_=Coordinates(lon=7.641, lat=51.952), filter=Filter())
     return WebsiteBuilder().get_route_example(route).render()
@@ -80,7 +80,6 @@ def example_marker():
     return WebsiteBuilder().get_example().render()
 
 
-@app.route("/")
 @app.route("/map")
 def map():
     website_builder = WebsiteBuilder()

@@ -284,6 +284,16 @@ def get_complete_route(
     return _merge_complete_route(car_route, wheelchair_route, spot)
 
 
+def summarize_route(route) -> dict:
+    """Extracts distance, duration and the step list for the search card."""
+    properties = route["features"][0]["properties"]
+    summary = properties["summary"]
+    return {
+        "distance_km": round(summary["distance"], 1),
+        "duration_min": round(summary["duration"] / 60),
+        "steps": [step["instruction"] for step in properties["segments"][0]["steps"]],
+    }
+
 if __name__ == "__main__":
     from_ = Coordinates(lon=7.641, lat=51.952)
     to_ = Coordinates(lon=7.626, lat=51.962)
