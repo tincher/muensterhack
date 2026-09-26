@@ -79,10 +79,30 @@ class DatabaseHandler:
             for current_res in res_all
         ]
 
-    def write_occupation(self, id, occupation):
-        pass
+    def update(self, waypoint: Waypoint):
+        self.con.execute(
+            """UPDATE parkplaetze
+            SET pp_lat = ?, pp_lon = ?, pp_ladesaeule_kw = ?, pp_zugangsseite = ?,
+                pp_rollstuhlgerecht_level = ?, pp_ueberdacht = ?, pp_schranke = ?,
+                pp_bildpfad = ?, pp_kostenlos = ?, pp_belegt = ?
+            WHERE pp_id = ?""",
+            (
+                waypoint.pp_lat,
+                waypoint.pp_lon,
+                waypoint.pp_ladesaeule_kw,
+                waypoint.pp_zugangsseite.value,
+                waypoint.pp_rollstuhlgerecht_level.value,
+                waypoint.pp_ueberdacht,
+                waypoint.pp_schranke,
+                waypoint.pp_bildpfad,
+                waypoint.pp_kostenlos,
+                waypoint.pp_belegt,
+                waypoint.pp_id,
+            ),
+        )
+        self.con.commit()
 
-    def write_one(self, waypoint):
+    def write_one(self, waypoint: Waypoint):
         self.con.execute(f"INSERT INTO parkplaetze VALUES({waypoint.get_sql_values()})")
         self.con.commit()
 

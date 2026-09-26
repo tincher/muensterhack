@@ -44,5 +44,12 @@
             "module": "scripts.fill_db",
             "envFile": "${workspaceFolder}/.env"
         },
+        {
+            "name": "update db",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.update_db",
+            "envFile": "${workspaceFolder}/.env"
+        },
     ]
 }
