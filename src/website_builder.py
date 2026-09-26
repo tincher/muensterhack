@@ -111,7 +111,7 @@ class WebsiteBuilder:
     def __init__(self):
         self.env = jinja2.Environment(loader=jinja2.FileSystemLoader("./assets/maps/"))
         self.marker_template = "L.marker({{lon: {lon}, lat: {lat}}}).bindPopup('{popup_text}').addTo(map);"
-        self.waypoint_marker_template = "registerWaypointMarker({lon}, {lat}, {data});"
+        self.waypoint_marker_template = "registerWaypointMarker({lon}, {lat}, {data}, {highlight});"
         # self.geojson_template = r"""L.geoJSON({{data}}, {
         #                     style: function (feature) {
         #                         return {color: feature.properties.color};
@@ -120,8 +120,20 @@ class WebsiteBuilder:
         #                     return layer.feature.properties.description;
         #                 }).addTo(map);
         #                 """
+        # Draws the route and zooms the map so the route is not hidden behind the search card:
+        # on a laptop the card is on the left, on a phone it is at the bottom.
         self.geojson_template = r"""var route = L.geoJSON({{data}}, {style: {color: '#2b5d79', weight: 6, opacity: 0.9} }).addTo(map);
-        map.fitBounds(route.getBounds(), {padding: [40, 40]});"""
+        (function () {
+            var card = document.querySelector('.search');
+            var filterBar = document.getElementById('waypoint-filter-bar');
+            var top = (filterBar ? filterBar.getBoundingClientRect().bottom : 80) + 20;
+            var padding = {paddingTopLeft: [420, 160], paddingBottomRight: [60, 90]};
+            if (window.matchMedia('(max-width: 700px)').matches && card) {
+                var bottom = window.innerHeight - card.getBoundingClientRect().top + 20;
+                padding = {paddingTopLeft: [30, top], paddingBottomRight: [30, bottom]};
+            }
+            map.fitBounds(route.getBounds(), padding);
+        })();"""
         self.website_config = WebsiteConfig()
 
     def render(self, **template_vars):
@@ -133,9 +145,15 @@ class WebsiteBuilder:
         self.website_config.append(self.marker_template.format(lon=lon, lat=lat, popup_text=popup_text))
         return self
 
-    def add_waypoint(self, waypoint: Waypoint):
+    def add_waypoint(self, waypoint: Waypoint, highlight: bool = False):
+        """Adds a parking spot marker. highlight=True shows the round "P" icon (parking at the destination)."""
         self.website_config.append(
-            self.waypoint_marker_template.format(lon=waypoint.pp_lon, lat=waypoint.pp_lat, data=waypoint.model_dump_json())
+            self.waypoint_marker_template.format(
+                lon=waypoint.pp_lon,
+                lat=waypoint.pp_lat,
+                data=waypoint.model_dump_json(),
+                highlight="true" if highlight else "false",
+            )
         )
         return self
 

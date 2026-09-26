@@ -59,7 +59,7 @@ def _wheelchair_payload(coordinates, instructions_format: str = "text", extra_in
         "coordinates": coordinates,
         "elevation": True,
         "instructions_format": instructions_format,
-        "language": "en",
+        "language": "de",
         "units": "km",
         "preference": "recommended",
         "options": {"profile_params": WHEELCHAIR_PROFILE_PARAMS},
@@ -91,7 +91,7 @@ def get_shade_wheelchair_route(
         "coordinates": coordinates,
         "elevation": True,
         "instructions_format": "text",
-        "language": "en",
+        "language": "de",
         "units": "km",
         "preference": "recommended",
         "options": {
@@ -221,6 +221,7 @@ def get_driving_car_route(from_: Coordinates, to_: Coordinates) -> FeatureCollec
     payload = {
         "coordinates": coordinates,
         "instructions_format": "html",
+        "language": "de",
         "units": "km",
     }
     return _post_ors(DRIVING_CAR_URL, payload)
