@@ -176,7 +176,7 @@
 <script>
   const FILTER_PREDICATES = {
     rollstuhlgerecht: function (waypoint) {
-      return waypoint.pp_barrierefreiheit_level === 'voll';
+      return waypoint.pp_rollstuhlgerecht_level === 'voll';
     },
     ueberdacht: function (waypoint) {
       return waypoint.pp_ueberdacht === true;
@@ -232,10 +232,10 @@
       FILTER_PREDICATES.rollstuhlgerecht = function (waypoint) {
         if (includePartial) {
           return (
-            waypoint.pp_barrierefreiheit_level === 'voll' || waypoint.pp_barrierefreiheit_level === 'teilweise'
+            waypoint.pp_rollstuhlgerecht_level === 'voll' || waypoint.pp_rollstuhlgerecht_level === 'teilweise'
           );
         }
-        return waypoint.pp_barrierefreiheit_level === 'voll';
+        return waypoint.pp_rollstuhlgerecht_level === 'voll';
       };
       caret.classList.toggle('waypoint-filter-caret--active', includePartial);
       caret.setAttribute('aria-expanded', 'false');

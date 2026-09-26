@@ -220,7 +220,7 @@
   };
 
   function parkingLevel(waypoint) {
-    return waypoint.pp_rollstuhlgerecht_level || waypoint.pp_barrierefreiheit_level || 'unbekannt';
+    return waypoint.pp_rollstuhlgerecht_level || 'unbekannt';
   }
 
   function parkingIcon(waypoint) {
@@ -340,8 +340,8 @@
     };
 
     const chips = [];
-    if (levels[waypoint.pp_barrierefreiheit_level]) {
-      chips.push(levels[waypoint.pp_barrierefreiheit_level]);
+    if (levels[waypoint.pp_rollstuhlgerecht_level]) {
+      chips.push(levels[waypoint.pp_rollstuhlgerecht_level]);
     }
     if (waypoint.pp_ueberdacht) {
       chips.push({ text: 'Überdacht', icon: 'covered', tone: 'info' });
