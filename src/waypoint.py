@@ -31,5 +31,8 @@ class Waypoint(BaseModel):
     pp_belegt: bool = False
     pp_kommentare: list[str] = Field(default_factory=list)
 
+    def update_occupation(self, occupation: bool):
+        self.pp_belegt = occupation
+
     def get_sql_values(self):
         return f"{self.pp_id}, {self.pp_lat}, {self.pp_lon}, {self.pp_ladesaeule_kw}, '{self.pp_zugangsseite.value}', '{self.pp_rollstuhlgerecht_level.value}', {self.pp_ueberdacht}, {self.pp_schranke}, '{self.pp_bildpfad}', {self.pp_kostenlos}, {self.pp_belegt}"

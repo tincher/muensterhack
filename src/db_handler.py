@@ -62,44 +62,51 @@ class DatabaseHandler:
     def get_all(self):
         res = self.con.execute("SELECT * FROM parkplaetze")
         res_all = res.fetchall()
-        return [
-            Waypoint(
-                pp_id=str(current_res[0]),
-                pp_lat=current_res[1],
-                pp_lon=current_res[2],
-                pp_ladesaeule_kw=current_res[3],
-                pp_zugangsseite=current_res[4],
-                pp_rollstuhlgerecht_level=current_res[5],
-                pp_ueberdacht=current_res[6],
-                pp_schranke=current_res[7],
-                pp_bildpfad=current_res[8],
-                pp_kostenlos=current_res[9],
-                pp_belegt=current_res[10],
-            )
-            for current_res in res_all
-        ]
+        return [self._convert_db_result_to_waypoint(data) for data in res_all]
 
-    def update(self, waypoint: Waypoint):
-        self.con.execute(
-            """UPDATE parkplaetze
-            SET pp_lat = ?, pp_lon = ?, pp_ladesaeule_kw = ?, pp_zugangsseite = ?,
-                pp_rollstuhlgerecht_level = ?, pp_ueberdacht = ?, pp_schranke = ?,
-                pp_bildpfad = ?, pp_kostenlos = ?, pp_belegt = ?
-            WHERE pp_id = ?""",
-            (
-                waypoint.pp_lat,
-                waypoint.pp_lon,
-                waypoint.pp_ladesaeule_kw,
-                waypoint.pp_zugangsseite.value,
-                waypoint.pp_rollstuhlgerecht_level.value,
-                waypoint.pp_ueberdacht,
-                waypoint.pp_schranke,
-                waypoint.pp_bildpfad,
-                waypoint.pp_kostenlos,
-                waypoint.pp_belegt,
-                waypoint.pp_id,
-            ),
+    def _convert_db_result_to_waypoint(self, data):
+        return Waypoint(
+            pp_id=str(data[0]),
+            pp_lat=data[1],
+            pp_lon=data[2],
+            pp_ladesaeule_kw=data[3],
+            pp_zugangsseite=data[4],
+            pp_rollstuhlgerecht_level=data[5],
+            pp_ueberdacht=data[6],
+            pp_schranke=data[7],
+            pp_bildpfad=data[8],
+            pp_kostenlos=data[9],
+            pp_belegt=data[10],
         )
+
+    def update_detection(self, new_waypoint: Waypoint):
+        res = self.con.execute(f"SELECT * from parkplaetze WHERE pp_id = {new_waypoint.pp_id}")
+        waypoint_data = res.fetchone()
+        if waypoint_data is not None:
+            db_waypoint = self._convert_db_result_to_waypoint(waypoint_data)
+            db_waypoint.pp_belegt = new_waypoint.pp_belegt
+            self.con.execute(
+                """UPDATE parkplaetze
+                SET pp_lat = ?, pp_lon = ?, pp_ladesaeule_kw = ?, pp_zugangsseite = ?,
+                    pp_rollstuhlgerecht_level = ?, pp_ueberdacht = ?, pp_schranke = ?,
+                    pp_bildpfad = ?, pp_kostenlos = ?, pp_belegt = ?
+                WHERE pp_id = ?""",
+                (
+                    db_waypoint.pp_lat,
+                    db_waypoint.pp_lon,
+                    db_waypoint.pp_ladesaeule_kw,
+                    db_waypoint.pp_zugangsseite.value,
+                    db_waypoint.pp_rollstuhlgerecht_level.value,
+                    db_waypoint.pp_ueberdacht,
+                    db_waypoint.pp_schranke,
+                    db_waypoint.pp_bildpfad,
+                    db_waypoint.pp_kostenlos,
+                    db_waypoint.pp_belegt,
+                    db_waypoint.pp_id,
+                ),
+            )
+        else:
+            self.write_one(new_waypoint)
         self.con.commit()
 
     def write_one(self, waypoint: Waypoint):
