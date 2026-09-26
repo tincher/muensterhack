@@ -9,9 +9,16 @@ dependencies = [
     "geojson>=3.3.0",
     "jinja2>=3.1.6",
     "pydantic>=2.13.5",
+    "pyproj>=3.8.0",
     "python-dotenv>=1.2.3",
     "requests>=2.34.2",
+    "websockets>=17.1",
 ]
 
 [tool.ruff]
 line-length = 140
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.9",
+]

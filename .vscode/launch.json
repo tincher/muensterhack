@@ -2,15 +2,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "routing",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "src.routing",
-            "envFile": "${workspaceFolder}/.env"
-        },
-        {
             "name": "start server",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "flask",
             "env": {
@@ -22,6 +15,34 @@
                 "run"
             ],
             "jinja": true
+        },
+        {
+            "name": "routing",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.routing",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "park_sensor",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.park_sensor",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "db",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.db_handler",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "fill db",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.fill_db",
+            "envFile": "${workspaceFolder}/.env"
         },
     ]
 }

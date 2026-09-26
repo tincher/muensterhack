@@ -43,9 +43,7 @@ class WebsiteBuilder:
 
     def add_waypoint(self, waypoint: Waypoint):
         self.website_config.append(
-            self.waypoint_marker_template.format(
-                lon=waypoint.pp_lon, lat=waypoint.pp_lat, data=waypoint.model_dump_json()
-            )
+            self.waypoint_marker_template.format(lon=waypoint.pp_lon, lat=waypoint.pp_lat, data=waypoint.model_dump_json())
         )
         return self
 
