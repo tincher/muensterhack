@@ -4,8 +4,9 @@ from flask import Flask, jsonify, request
 from src.coordinates import Coordinates
 from src.db_handler import DatabaseHandler
 from src.filter import Filter
-from src.routing import get_complete_route, get_route
+from src.routing import get_complete_route, get_route, summarize_route
 from src.website_builder import WebsiteBuilder
+from src.geocoding import Place,geocode
 
 load_dotenv()
 app = Flask(__name__, static_folder="../assets", static_url_path="/assets")
@@ -49,7 +50,7 @@ def index():
         elif destination is None:
             error = f"Das Ziel „{destination_text}“ wurde in Münster nicht gefunden. {hint}"
         else:
-            route = get_route(start.coordinates, destination.coordinates)
+            route = get_route([start.coordinates, destination.coordinates])
             if route.get("features"):
                 builder.add_route(route)
                 route_info = summarize_route(route)

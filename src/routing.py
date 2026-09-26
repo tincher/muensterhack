@@ -294,6 +294,7 @@ def summarize_route(route) -> dict:
         "steps": [step["instruction"] for step in properties["segments"][0]["steps"]],
     }
 
+
 if __name__ == "__main__":
     from_ = Coordinates(lon=7.641, lat=51.952)
     to_ = Coordinates(lon=7.626, lat=51.962)
