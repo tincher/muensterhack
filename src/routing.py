@@ -77,8 +77,8 @@ def _sample_waypoints(coordinates, num_waypoints: int = 20):
     return waypoints
 
 
-def get_route(from_: Coordinates, to_: Coordinates) -> dict:
-    coordinates = [[from_.lon, from_.lat], [to_.lon, to_.lat]]
+def get_route(route_coordinates: list[Coordinates]) -> dict:
+    coordinates = [[point.lon, point.lat] for point in route_coordinates]
     payload = _wheelchair_payload(coordinates, instructions_format="html", extra_info=["surface", "steepness", "waytype"])
     return _post_ors(WHEELCHAIR_URL, payload)
 
@@ -282,6 +282,17 @@ def get_complete_route(
     wheelchair_route = get_shade_wheelchair_route(spot.coordinates, to_)
 
     return _merge_complete_route(car_route, wheelchair_route, spot)
+
+
+def summarize_route(route) -> dict:
+    """Extracts distance, duration and the step list for the search card."""
+    properties = route["features"][0]["properties"]
+    summary = properties["summary"]
+    return {
+        "distance_km": round(summary["distance"], 1),
+        "duration_min": round(summary["duration"] / 60),
+        "steps": [step["instruction"] for step in properties["segments"][0]["steps"]],
+    }
 
 
 if __name__ == "__main__":

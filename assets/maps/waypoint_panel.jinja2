@@ -1,0 +1,335 @@
+<div id="waypoint-panel" class="waypoint-panel" hidden aria-live="polite">
+  <button type="button" class="waypoint-panel__close" onclick="closeWaypointPanel()" aria-label="Schließen">×</button>
+  <img id="waypoint-panel-image" class="waypoint-panel__image" alt="" hidden>
+  <div class="waypoint-panel__body">
+    <h2 id="waypoint-panel-title" class="waypoint-panel__title"></h2>
+    <ul id="waypoint-panel-attributes" class="waypoint-panel__attributes"></ul>
+    <p id="waypoint-panel-comments" class="waypoint-panel__comments" hidden></p>
+    <div class="waypoint-panel__actions">
+      <button type="button" id="waypoint-panel-add-route" class="waypoint-panel__action waypoint-panel__action--primary">Zur Route hinzufügen</button>
+      <button type="button" id="waypoint-panel-navigate" class="waypoint-panel__action waypoint-panel__action--secondary">Navigation starten</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .waypoint-panel {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--view-switcher-height) + 12px);
+    z-index: 1000;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    max-height: 70vh;
+    overflow-y: auto;
+    font-family: system-ui, sans-serif;
+  }
+
+  .waypoint-panel[hidden] {
+    display: none;
+  }
+
+  .waypoint-panel__close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .waypoint-panel__image {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 14px 14px 0 0;
+    display: block;
+  }
+
+  .waypoint-panel__body {
+    padding: 12px 14px 14px;
+  }
+
+  .waypoint-panel__title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+  }
+
+  .waypoint-panel__attributes {
+    list-style: none;
+    margin: 0 0 10px;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .waypoint-panel__attributes li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 10px 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  .waypoint-panel__attributes svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .waypoint-chip--positive {
+    background: #e3f5e8;
+    color: #1e6b3c;
+  }
+
+  .waypoint-chip--warning {
+    background: #fdf1de;
+    color: #92600a;
+  }
+
+  .waypoint-chip--negative {
+    background: #fbe9e8;
+    color: #a13c35;
+  }
+
+  .waypoint-chip--info {
+    background: #e5eefc;
+    color: #29558c;
+  }
+
+  .waypoint-panel__comments {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0 0 10px;
+  }
+
+  .waypoint-panel__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .waypoint-panel__action {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  .waypoint-panel__action--primary {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .waypoint-panel__action--secondary {
+    background: #eef2ff;
+    color: #2563eb;
+  }
+
+  @media (min-width: 700px) {
+    .waypoint-panel {
+      left: auto;
+      right: 16px;
+      bottom: calc(var(--view-switcher-height) + 16px);
+      width: 320px;
+    }
+
+    .waypoint-panel__actions {
+      flex-direction: row;
+    }
+
+    .waypoint-panel__action {
+      flex: 1;
+    }
+  }
+</style>
+
+<script>
+  const waypointMarkers = [];
+
+  function registerWaypointMarker(lon, lat, waypoint) {
+    const marker = L.marker({ lon: lon, lat: lat }).on('click', function () {
+      showWaypointPanel(waypoint);
+    });
+    marker.addTo(map);
+    waypointMarkers.push({ marker: marker, waypoint: waypoint });
+    if (typeof renderWaypointList === 'function') {
+      renderWaypointList();
+    }
+    return marker;
+  }
+
+  function showWaypointPanel(waypoint) {
+    const panel = document.getElementById('waypoint-panel');
+    document.getElementById('waypoint-panel-title').textContent = waypoint.pp_id;
+
+    const image = document.getElementById('waypoint-panel-image');
+    if (waypoint.pp_bildpfad) {
+      image.src = waypoint.pp_bildpfad;
+      image.hidden = false;
+    } else {
+      image.hidden = true;
+    }
+
+    renderAttributeChips(document.getElementById('waypoint-panel-attributes'), waypoint);
+
+    const comments = document.getElementById('waypoint-panel-comments');
+    if (waypoint.pp_kommentare && waypoint.pp_kommentare.length) {
+      comments.textContent = waypoint.pp_kommentare.join(' · ');
+      comments.hidden = false;
+    } else {
+      comments.hidden = true;
+    }
+
+    document.getElementById('waypoint-panel-add-route').onclick = function () {
+      addWaypointToRoute(waypoint);
+    };
+    document.getElementById('waypoint-panel-navigate').onclick = function () {
+      startNavigationTo(waypoint);
+    };
+
+    panel.hidden = false;
+  }
+
+  function closeWaypointPanel() {
+    document.getElementById('waypoint-panel').hidden = true;
+  }
+
+  const CHIP_ICONS = {
+    wheelchair:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="8" cy="4" r="1.6"/><path d="M8 7v4l3.5 2 2 4"/><path d="M8 11h5"/>' +
+      '<circle cx="9.5" cy="14.5" r="4.5" stroke-width="1.4"/></svg>',
+    covered:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M3 10l7-6 7 6"/><path d="M5 9.2v6.8h10V9.2"/></svg>',
+    barrier:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<rect x="3" y="5.5" width="14" height="6" rx="1"/>' +
+      '<line x1="4.2" y1="11.5" x2="8" y2="5.5"/><line x1="8.3" y1="11.5" x2="12.1" y2="5.5"/><line x1="12.4" y1="11.5" x2="16.2" y2="5.5"/>' +
+      '<path d="M6 11.5l-2 4.5"/><path d="M14 11.5l2 4.5"/></svg>',
+    priceFree:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M3 3h6.5l7.5 7.5-6.5 6.5L3 9.5z"/><circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    charging:
+      '<svg viewBox="0 0 20 20" fill="currentColor" stroke="none" aria-hidden="true"><path d="M11 2 4 12h5l-1 6 8-11h-5z"/></svg>',
+    vacant:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="10" cy="10" r="7.2"/><path d="M6.5 10.2l2.3 2.3 4.7-5"/></svg>',
+    occupied:
+      '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="10" cy="10" r="7.2"/><line x1="7.3" y1="7.3" x2="12.7" y2="12.7"/><line x1="12.7" y1="7.3" x2="7.3" y2="12.7"/></svg>',
+  };
+
+  function renderAttributeChips(container, waypoint) {
+    container.innerHTML = '';
+    waypointAttributeChips(waypoint).forEach(function (chip) {
+      const item = document.createElement('li');
+      item.className = 'waypoint-chip--' + chip.tone;
+      item.innerHTML = CHIP_ICONS[chip.icon];
+      const label = document.createElement('span');
+      label.textContent = chip.text;
+      item.appendChild(label);
+      container.appendChild(item);
+    });
+  }
+
+  function waypointAttributeChips(waypoint) {
+    const levels = {
+      voll: { text: 'Rollstuhlgerecht', icon: 'wheelchair', tone: 'positive' },
+      teilweise: { text: 'Teilweise rollstuhlgerecht', icon: 'wheelchair', tone: 'warning' },
+      nicht: { text: 'Nicht rollstuhlgerecht', icon: 'wheelchair', tone: 'negative' },
+    };
+
+    const chips = [];
+    if (levels[waypoint.pp_barrierefreiheit_level]) {
+      chips.push(levels[waypoint.pp_barrierefreiheit_level]);
+    }
+    if (waypoint.pp_ueberdacht) {
+      chips.push({ text: 'Überdacht', icon: 'covered', tone: 'info' });
+    }
+    if (waypoint.pp_schranke) {
+      chips.push({ text: 'Schranke', icon: 'barrier', tone: 'warning' });
+    }
+    if (waypoint.pp_kostenlos) {
+      chips.push({ text: 'Kostenlos', icon: 'priceFree', tone: 'positive' });
+    }
+    if (waypoint.pp_ladesaeule_kw) {
+      chips.push({ text: 'Ladesäule ' + waypoint.pp_ladesaeule_kw + ' kW', icon: 'charging', tone: 'info' });
+    }
+    if (waypoint.pp_belegt === true) {
+      chips.push({ text: 'Belegt', icon: 'occupied', tone: 'negative' });
+    }
+    if (waypoint.pp_belegt === false) {
+      chips.push({ text: 'Frei', icon: 'vacant', tone: 'positive' });
+    }
+    return chips;
+  }
+
+  let routeStops = [];
+  let currentRouteLayer = null;
+
+  function addWaypointToRoute(waypoint) {
+    routeStops.push({ lat: waypoint.pp_lat, lon: waypoint.pp_lon });
+    requestRoute(routeStops);
+    closeWaypointPanel();
+  }
+
+  function startNavigationTo(waypoint) {
+    requestRoute([{ lat: waypoint.pp_lat, lon: waypoint.pp_lon }]);
+    closeWaypointPanel();
+  }
+
+  function requestRoute(stops) {
+    if (!navigator.geolocation) {
+      console.error('Geolocation wird von diesem Browser nicht unterstützt.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const points = [
+          { lat: position.coords.latitude, lon: position.coords.longitude },
+        ].concat(stops);
+
+        fetch('/route', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ points: points }),
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('Route konnte nicht berechnet werden');
+            }
+            return response.json();
+          })
+          .then(drawRoute)
+          .catch(function (error) {
+            console.error(error);
+          });
+      },
+      function (error) {
+        console.error('Standort konnte nicht ermittelt werden', error);
+      }
+    );
+  }
+
+  function drawRoute(geojson) {
+    if (currentRouteLayer) {
+      map.removeLayer(currentRouteLayer);
+    }
+    currentRouteLayer = L.geoJSON(geojson).addTo(map);
+    map.fitBounds(currentRouteLayer.getBounds());
+  }
+</script>

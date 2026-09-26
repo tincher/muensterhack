@@ -1,0 +1,96 @@
+<nav class="view-switcher" role="tablist" aria-label="Ansicht wählen">
+  <button type="button" class="view-switcher__tab" data-view="map" role="tab" aria-selected="true">
+    <span class="view-switcher__icon">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 5l5-2 5 2 4-2v12l-4 2-5-2-5 2z"/>
+        <path d="M8 3v12M13 5v12"/>
+      </svg>
+    </span>
+    <span>Karte</span>
+  </button>
+  <button type="button" class="view-switcher__tab" data-view="list" role="tab" aria-selected="false">
+    <span class="view-switcher__icon">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="4" cy="5" r="1" fill="currentColor" stroke="none"/>
+        <line x1="8" y1="5" x2="17" y2="5"/>
+        <circle cx="4" cy="10" r="1" fill="currentColor" stroke="none"/>
+        <line x1="8" y1="10" x2="17" y2="10"/>
+        <circle cx="4" cy="15" r="1" fill="currentColor" stroke="none"/>
+        <line x1="8" y1="15" x2="17" y2="15"/>
+      </svg>
+    </span>
+    <span>Liste</span>
+  </button>
+</nav>
+
+<style>
+  :root {
+    --view-switcher-height: 52px;
+  }
+
+  .view-switcher {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    height: var(--view-switcher-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
+    font-family: system-ui, sans-serif;
+  }
+
+  .view-switcher__tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: none;
+    color: #8a8a8a;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+
+  .view-switcher__icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .view-switcher__tab[aria-selected="true"] {
+    color: #2563eb;
+  }
+</style>
+
+<script>
+  function initViewSwitcher() {
+    const tabs = document.querySelectorAll('.view-switcher__tab');
+    const mapElement = document.getElementById('map');
+    const listElement = document.getElementById('waypoint-list-view');
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (other) {
+          other.setAttribute('aria-selected', String(other === tab));
+        });
+
+        if (tab.dataset.view === 'list') {
+          mapElement.hidden = true;
+          listElement.hidden = false;
+          renderWaypointList();
+        } else {
+          mapElement.hidden = false;
+          listElement.hidden = true;
+          map.invalidateSize();
+        }
+      });
+    });
+  }
+
+  initViewSwitcher();
+</script>
