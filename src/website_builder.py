@@ -57,6 +57,22 @@ class WebsiteConfig:
                     outline-offset: 2px;
                     box-shadow: 0 0 0 5px #132933;
                 }
+                /* Inside the header bar: flatter, a bit smaller, pushed to the right */
+                .karten-auswahl--kopfzeile {
+                    margin-left: auto;
+                    padding: 4px;
+                    background: #eef3f5;
+                    box-shadow: none;
+                }
+                .karten-auswahl--kopfzeile .karten-knopf {
+                    min-height: 36px;
+                    padding: 0 14px;
+                    font-size: 14px;
+                }
+                @media (max-width: 480px) {
+                    .karten-auswahl--kopfzeile { gap: 2px; padding: 3px; }
+                    .karten-auswahl--kopfzeile .karten-knopf { padding: 0 10px; font-size: 13px; }
+                }
                 @media (prefers-reduced-motion: reduce) {
                     .karten-knopf { transition: none; }
                 }
@@ -99,6 +115,15 @@ class WebsiteConfig:
                 }
             });
             new KartenAuswahl().addTo(map);
+
+            // Put the map style buttons into the header bar (logo left, buttons right).
+            // If there is no header, they simply stay on the map (top right).
+            var kopfzeile = document.querySelector('.app-header');
+            var kartenBox = document.querySelector('.karten-auswahl');
+            if (kopfzeile && kartenBox) {
+                kopfzeile.appendChild(kartenBox);
+                kartenBox.classList.add('karten-auswahl--kopfzeile');
+            }
 
             // show the scale bar on the lower left corner
             L.control.scale({imperial: true, metric: true}).addTo(map);"""

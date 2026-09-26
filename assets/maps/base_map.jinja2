@@ -232,6 +232,24 @@
         clip: rect(0 0 0 0); white-space: nowrap;
       }
 
+      /* Header bar: logo on the left, map style buttons (Stadtplan/Natur/Satellit) on the right */
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 16px;
+        box-sizing: border-box;
+      }
+      .app-header > :first-child {
+        margin-left: 0;
+        margin-right: auto;
+      }
+      @media (max-width: 480px) {
+        .app-header { padding: 0 10px; gap: 8px; }
+        .app-header img { max-width: 110px; height: auto; }
+      }
+
       /* Map controls (zoom +/- and Stadtplan/Natur/Satellit) start below the header and the
          filter bar, and the scale bar / attribution sit above the "Karte / Liste" bar,
          so nothing is hidden behind the fixed bars of the app */
