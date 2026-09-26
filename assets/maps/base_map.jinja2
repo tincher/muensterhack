@@ -28,9 +28,11 @@
       /* Search card */
       .search {
         position: absolute;
-        top: 12px;
+        /* below the header bar and the filter bar of the team */
+        top: calc(var(--app-header-height, 0px) + var(--filter-bar-height, 0px) + 22px);
         left: 56px;
-        z-index: 1000;
+        /* below the filter bar (z-index 999), so its drop-down menus open on top of this card */
+        z-index: 998;
         width: 320px;
         box-sizing: border-box;
         padding: 16px 16px 18px;
@@ -129,6 +131,46 @@
         border-top: 1px solid #e4ebee;
       }
       .result .time { font-size: 24px; font-weight: 700; margin-right: 6px; }
+
+      /* Summary at the top of the result: time, distance, "Start → Ziel" and the "Ändern" button */
+      .result-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .result-head .time,
+      .result-head .distance { white-space: nowrap; }
+      .result-head .trip {
+        margin: 2px 0 0;
+        font-size: 15px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .edit-button {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: 0 16px;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--petrol);
+        background: #fff;
+        border: 2px solid var(--petrol);
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .edit-button:hover { background: var(--green-light); }
+      .edit-button[hidden] { display: none; }
+
+      /* After a search the input fields are folded away (only when JavaScript runs) */
+      .search.is-collapsed .fields { display: none; }
+      .search[hidden] { display: none; }
+      .search.is-collapsed .result {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
       .result .badge {
         display: flex;
         align-items: center;
@@ -142,6 +184,11 @@
         line-height: 1.4;
       }
       .result .badge svg { flex-shrink: 0; color: #2f7a3a; }
+      .result .parking-hint {
+        margin: 10px 0 0;
+        font-size: 14px;
+        line-height: 1.4;
+      }
       .result summary {
         margin-top: 8px;
         min-height: 44px;
@@ -151,18 +198,48 @@
         font-weight: 700;
         cursor: pointer;
       }
+      /* Directions: numbers in their own column, so 10, 11, ... are never cut off
+         and long lines wrap under the text instead of under the number */
       .result ol {
         margin: 0;
-        padding-left: 20px;
+        padding: 0 4px 0 0;
+        list-style: none;
+        counter-reset: step;
         max-height: 220px;
         overflow-y: auto;
         font-size: 15px;
-        line-height: 1.5;
+        line-height: 1.45;
+      }
+      .result li {
+        counter-increment: step;
+        display: grid;
+        grid-template-columns: 2em 1fr;
+        column-gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid #e4ebee;
+      }
+      .result li:last-child { border-bottom: none; }
+      .result li::before {
+        content: counter(step) ".";
+        text-align: right;
+        font-weight: 700;
+        color: var(--petrol);
+        font-variant-numeric: tabular-nums;
       }
 
       .sr-only {
         position: absolute; width: 1px; height: 1px; overflow: hidden;
         clip: rect(0 0 0 0); white-space: nowrap;
+      }
+
+      /* Map controls (zoom +/- and Stadtplan/Natur/Satellit) start below the header and the
+         filter bar, and the scale bar / attribution sit above the "Karte / Liste" bar,
+         so nothing is hidden behind the fixed bars of the app */
+      .leaflet-top {
+        top: calc(var(--app-header-height, 0px) + 10px + var(--filter-bar-height, 0px));
+      }
+      .leaflet-bottom {
+        bottom: var(--view-switcher-height, 0px);
       }
 
       /* Leaflet attribution (bottom right): readable contrast */
@@ -177,9 +254,26 @@
         text-decoration: underline;
       }
 
-      /* Small screens: card at the bottom over the full width */
+      /* Small screens (phone): card at the bottom, always above the "Karte / Liste" bar */
       @media (max-width: 700px) {
-        .search { top: auto; bottom: 20px; left: 10px; right: 10px; width: auto; }
+        .search {
+          top: auto;
+          /* leaves a small gap for the map attribution (© OpenStreetMap) above the bar */
+          bottom: calc(var(--view-switcher-height, 64px) + 26px);
+          left: 10px;
+          right: 10px;
+          width: auto;
+          max-height: calc(100% - var(--view-switcher-height, 64px) - var(--app-header-height, 0px) - var(--filter-bar-height, 0px) - 40px);
+          overflow-y: auto;
+          padding: 14px 16px 14px;
+        }
+        /* the scale bar would sit behind the card on a phone */
+        .leaflet-control-scale { display: none; }
+        .result .badge { margin-top: 10px; padding: 8px 12px; font-size: 13px; }
+        .result .badge-detail { display: none; }
+        .result .parking-hint { margin-top: 8px; }
+        .result summary { margin-top: 4px; }
+        .result ol { max-height: 34vh; }
       }
     </style>
   </head>
@@ -188,6 +282,7 @@
       <h1 class="sr-only">Access Münster – barrierefreie Route</h1>
       <p id="status" class="sr-only" aria-live="polite"></p>
 
+      <div class="fields" id="search-fields">
       <div class="label-row">
         <label for="start">Start</label>
       </div>
@@ -208,6 +303,7 @@
              placeholder="z. B. Domplatz" autocomplete="street-address" required>
 
       <button type="submit" class="submit">Route suchen</button>
+      </div>
 
       {% if error %}
         <p class="error" role="alert">{{ error|e }}</p>
@@ -217,17 +313,33 @@
         <div class="result" role="status">
           {% set hours = route_info.duration_min // 60 %}
           {% set minutes = route_info.duration_min % 60 %}
-          <span class="time">{% if hours %}{{ hours }} Std {{ minutes }} Min{% else %}{{ minutes }} Min{% endif %}</span>
-          <span>{{ ("%.1f"|format(route_info.distance_km))|replace(".", ",") }} km</span>
+          <div class="result-head">
+            <div>
+              <span class="time">{% if hours %}{{ hours }} Std {{ minutes }} Min{% else %}{{ minutes }} Min{% endif %}</span>
+              <span class="distance">{{ ("%.1f"|format(route_info.distance_km))|replace(".", ",") }} km</span>
+              <p class="trip">{{ start|e }} → {{ destination|e }}</p>
+            </div>
+            <button type="button" id="edit-search" class="edit-button"
+                    aria-controls="search-fields" aria-expanded="true" hidden>Ändern</button>
+          </div>
           <p class="badge">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>
-            Rollstuhlgerecht: ohne Treppen, nicht steiler als 6 %
+            <span>Rollstuhlgerecht<span class="badge-detail">: ohne Treppen, nicht steiler als 6 %</span></span>
           </p>
+          {% if route_info.parking %}
+            <p class="parking-hint">
+              <strong>Behindertenparkplatz am Ziel:</strong>
+              {% for spot in route_info.parking %}{{ spot.name|e }} ({{ spot.distance_m }} m){% if not loop.last %}, {% endif %}{% endfor %}
+            </p>
+          {% elif route_info.parking is defined %}
+            <p class="parking-hint">Kein Behindertenparkplatz im Umkreis von {{ parking_radius_m }} m um das Ziel.</p>
+          {% endif %}
           <details>
             <summary>Wegbeschreibung anzeigen</summary>
-            <ol>
+            <ol role="list">
               {% for step in route_info.steps %}
-                <li>{{ step|striptags }}</li>
+                {% set text = step|striptags|trim %}
+                <li>{{ text[:1]|upper }}{{ text[1:] }}</li>
               {% endfor %}
             </ol>
           </details>
@@ -276,6 +388,55 @@
 
         // Typing a new start address forgets the stored position
         start.addEventListener('input', function () { coords.value = ''; });
+
+        // "Liste" view: hide the search card, "Karte" view: show it again.
+        // Works by watching the list view of the team, so the view switcher itself does not need to change.
+        var searchCard = document.querySelector('.search');
+        var listView = document.getElementById('waypoint-list-view');
+        var mapElement = document.getElementById('map');
+        function isShown(element) {
+          return !!element && element.getClientRects().length > 0;
+        }
+        function syncSearchCard() {
+          var listIsOpen = isShown(listView) || !isShown(mapElement);
+          searchCard.hidden = listIsOpen;
+        }
+        if (window.MutationObserver) {
+          var observer = new MutationObserver(syncSearchCard);
+          [document.body, listView, mapElement].forEach(function (element) {
+            if (element) {
+              observer.observe(element, {attributes: true, attributeFilter: ['hidden', 'class', 'style']});
+            }
+          });
+        }
+        document.addEventListener('click', function (event) {
+          if (event.target.closest('.view-switcher')) {
+            setTimeout(syncSearchCard, 0);
+          }
+        });
+        window.addEventListener('load', syncSearchCard);
+
+        // After a search: fold the input fields away so the route is visible.
+        // "Ändern" opens them again. Without JavaScript everything simply stays open.
+        var form = document.querySelector('.search');
+        var editButton = document.getElementById('edit-search');
+        if (editButton) {
+          editButton.hidden = false;
+          var setCollapsed = function (collapsed) {
+            form.classList.toggle('is-collapsed', collapsed);
+            editButton.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            editButton.textContent = collapsed ? 'Ändern' : 'Einklappen';
+          };
+          setCollapsed(true);
+          editButton.addEventListener('click', function () {
+            var collapsed = form.classList.contains('is-collapsed');
+            setCollapsed(!collapsed);
+            if (collapsed) {
+              form.scrollTop = 0;
+              start.focus();
+            }
+          });
+        }
       })();
 
      {{leaflet_code}}

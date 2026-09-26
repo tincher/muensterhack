@@ -1,22 +1,30 @@
+import sqlite3
+
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from pyproj import Geod
 
 from src.coordinates import Coordinates
 from src.db_handler import DatabaseHandler
 from src.filter import Filter
+from src.geocoding import Place, geocode
 from src.routing import get_complete_route, get_route, summarize_route
+from src.waypoint import Waypoint
 from src.website_builder import WebsiteBuilder
-from src.geocoding import Place,geocode
 
 load_dotenv()
 app = Flask(__name__, static_folder="../assets", static_url_path="/assets")
 
+# Parking spot at the destination ("P" icon): the nearest one within this radius
+PARKING_RADIUS_M = 300
+PARKING_COUNT = 1
+# After a route search, the other parking spots (blue pins) are only shown within this radius
+# around the destination, so the map is not overloaded. Change the number to show more or fewer.
+OTHER_PARKING_RADIUS_M = 500
 
-@app.route("/example_route")
-def example_route():
-    # 51.962713, 7.625652
-    route = get_complete_route(from_=Coordinates(lon=7.625652, lat=51.962713), to_=Coordinates(lon=7.641, lat=51.952), filter=Filter())
-    return WebsiteBuilder().get_route_example(route).render()
+_GEOD = Geod(ellps="WGS84")
+
+
 def parse_coordinates(text: str) -> Coordinates | None:
     """Reads 'lat,lon' as sent by the 'my location' button. Returns None if invalid."""
     try:
@@ -28,6 +36,30 @@ def parse_coordinates(text: str) -> Coordinates | None:
     return None
 
 
+def load_waypoints() -> list[Waypoint]:
+    """All parking spots from the database (empty list if the database is not available)."""
+    try:
+        return DatabaseHandler().get_all()
+    except sqlite3.Error:
+        return []
+
+
+def parking_within(center: Coordinates, waypoints: list[Waypoint], radius_m: float) -> list[tuple[Waypoint, float]]:
+    """All parking spots within radius_m of center, with their distance in metres, nearest first."""
+    nearby = []
+    for waypoint in waypoints:
+        _, _, distance_m = _GEOD.inv(waypoint.pp_lon, waypoint.pp_lat, center.lon, center.lat)
+        if distance_m <= radius_m:
+            nearby.append((waypoint, distance_m))
+    nearby.sort(key=lambda item: item[1])
+    return nearby
+
+
+def parking_near(destination: Coordinates, waypoints: list[Waypoint]) -> list[tuple[Waypoint, float]]:
+    """The PARKING_COUNT nearest parking spots within PARKING_RADIUS_M of the destination."""
+    return parking_within(destination, waypoints, PARKING_RADIUS_M)[:PARKING_COUNT]
+
+
 @app.route("/")
 def index():
     start_text = request.args.get("start", "").strip()
@@ -37,6 +69,9 @@ def index():
     builder = WebsiteBuilder()
     error = None
     route_info = None
+    waypoints = load_waypoints()
+    shown_waypoints = waypoints  # without a route: all parking spots
+    destination_parking_ids: set[str] = set()
 
     if start_text and destination_text:
         # "My location" sends exact coordinates, otherwise the typed address is looked up
@@ -50,21 +85,39 @@ def index():
         elif destination is None:
             error = f"Das Ziel „{destination_text}“ wurde in Münster nicht gefunden. {hint}"
         else:
-            route = get_route([start.coordinates, destination.coordinates])
+            try:
+                route = get_route([start.coordinates, destination.coordinates])
+            except RuntimeError:
+                route = {}
             if route.get("features"):
                 builder.add_route(route)
                 route_info = summarize_route(route)
-                # Show which places were actually used, so wrong matches are easy to spot
-                route_info["from_label"] = start.label
-                route_info["to_label"] = destination.label
+
+                # Parking at the destination: gets the "P" icon
+                nearby = parking_near(destination.coordinates, waypoints)
+                destination_parking_ids = {waypoint.pp_id for waypoint, _ in nearby}
+
+                # Other parking spots: only those close to the destination (blue pins)
+                shown_waypoints = [
+                    waypoint
+                    for waypoint, _ in parking_within(destination.coordinates, waypoints, OTHER_PARKING_RADIUS_M)
+                ]
+
+                route_info["parking"] = [
+                    {"name": waypoint.pp_id, "distance_m": round(distance_m)} for waypoint, distance_m in nearby
+                ]
             else:
                 error = "Für diese Strecke wurde keine barrierefreie Route gefunden."
+
+    for waypoint in shown_waypoints:
+        builder.add_waypoint(waypoint, highlight=waypoint.pp_id in destination_parking_ids)
 
     return builder.render(
         start=start_text,
         start_coords=start_coords,
         destination=destination_text,
         route_info=route_info,
+        parking_radius_m=PARKING_RADIUS_M,
         error=error,
     )
 
@@ -76,30 +129,22 @@ def route():
     return jsonify(get_route(points))
 
 
+@app.route("/example_route")
+def example_route():
+    route = get_complete_route(from_=Coordinates(lon=7.625652, lat=51.962713), to_=Coordinates(lon=7.641, lat=51.952), filter=Filter())
+    return WebsiteBuilder().get_route_example(route).render()
+
+
 @app.route("/example_marker")
 def example_marker():
     return WebsiteBuilder().get_example().render()
 
 
 @app.route("/map")
-def map():
-    website_builder = WebsiteBuilder()
-    db_handler = DatabaseHandler()
-    parking_spots = db_handler.get_all_parking_spots()
-    for parking_spot in parking_spots:
-        website_builder.add_marker(lat=parking_spot.coordinates.lat, lon=parking_spot.coordinates.lon, popup_text=parking_spot.status)
-    return website_builder.render()
-
-
-@app.route("/plan")
-def plan_route():
-    pass
-
-
 @app.route("/example_waypoints")
-def example_waypoints():
+def parking_map():
+    """All parking spots, without a route."""
     builder = WebsiteBuilder()
-    parking_spots = DatabaseHandler().get_all()
-    for parking_spot in parking_spots:
-        builder.add_waypoint(parking_spot)
+    for waypoint in load_waypoints():
+        builder.add_waypoint(waypoint)
     return builder.render()

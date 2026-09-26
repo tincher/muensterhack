@@ -31,6 +31,53 @@
     display: none;
   }
 
+  /* Parking icon on the map */
+  .parking-icon {
+    background: none;
+    border: none;
+  }
+
+  .parking-icon__pin {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    color: #fff;
+    font: 700 17px 'Atkinson Hyperlegible', system-ui, sans-serif;
+    box-shadow: 0 2px 6px rgba(19, 41, 51, 0.35);
+  }
+
+  .parking-icon__badge {
+    position: absolute;
+    right: -7px;
+    bottom: -7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    color: #132933;
+    box-shadow: 0 1px 3px rgba(19, 41, 51, 0.3);
+  }
+
+  .parking-icon__badge svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .leaflet-marker-icon.parking-icon:focus-visible {
+    outline: 3px solid #e6af44;
+    outline-offset: 3px;
+    border-radius: 50%;
+  }
+
   .waypoint-panel__close {
     position: absolute;
     top: 6px;
@@ -158,8 +205,48 @@
 <script>
   const waypointMarkers = [];
 
-  function registerWaypointMarker(lon, lat, waypoint) {
-    const marker = L.marker({ lon: lon, lat: lat }).on('click', function () {
+  // Parking icon: round "P" with a wheelchair badge, coloured by wheelchair level
+  const PARKING_ICON_COLORS = {
+    voll: '#1a7f37',
+    teilweise: '#b45309',
+    nicht: '#b42318',
+    unbekannt: '#5f6672',
+  };
+  const PARKING_LEVEL_TEXT = {
+    voll: 'rollstuhlgerecht',
+    teilweise: 'teilweise rollstuhlgerecht',
+    nicht: 'nicht rollstuhlgerecht',
+    unbekannt: 'Rollstuhl-Eignung unbekannt',
+  };
+
+  function parkingLevel(waypoint) {
+    return waypoint.pp_rollstuhlgerecht_level || waypoint.pp_barrierefreiheit_level || 'unbekannt';
+  }
+
+  function parkingIcon(waypoint) {
+    const color = PARKING_ICON_COLORS[parkingLevel(waypoint)] || PARKING_ICON_COLORS.unbekannt;
+    return L.divIcon({
+      className: 'parking-icon',
+      html:
+        '<span class="parking-icon__pin" style="background:' + color + '">P' +
+        '<span class="parking-icon__badge">' + CHIP_ICONS.wheelchair + '</span></span>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    });
+  }
+
+  // highlight = true: parking spot at the searched destination -> round "P" icon.
+  // Otherwise the normal Leaflet marker is used.
+  function registerWaypointMarker(lon, lat, waypoint, highlight) {
+    const label = 'Behindertenparkplatz ' + waypoint.pp_id + ', ' +
+      (PARKING_LEVEL_TEXT[parkingLevel(waypoint)] || PARKING_LEVEL_TEXT.unbekannt) +
+      (highlight ? ', am Ziel' : '');
+    const options = { title: label, alt: label, keyboard: true };
+    if (highlight) {
+      options.icon = parkingIcon(waypoint);
+      options.zIndexOffset = 1000;
+    }
+    const marker = L.marker({ lon: lon, lat: lat }, options).on('click', function () {
       showWaypointPanel(waypoint);
     });
     marker.addTo(map);
