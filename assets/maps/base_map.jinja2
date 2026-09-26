@@ -28,9 +28,9 @@
       /* Search card */
       .search {
         position: absolute;
-        top: 12px;
+        top: calc(var(--app-header-height, 56px) + var(--filter-bar-height, 42px) + 20px);
         left: 56px;
-        z-index: 1000;
+        z-index: 998;
         width: 320px;
         box-sizing: border-box;
         padding: 16px 16px 18px;
